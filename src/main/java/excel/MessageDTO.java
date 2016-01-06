@@ -1,4 +1,4 @@
-package excle;
+package excel;
 
 public class MessageDTO
 {

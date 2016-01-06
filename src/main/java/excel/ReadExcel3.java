@@ -1,4 +1,4 @@
-package excle;
+package excel;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,7 +14,7 @@ import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 
-public class ReadExcel2
+public class ReadExcel3
 {
 	public static void main(String[] args)
 	{
@@ -49,14 +49,11 @@ public class ReadExcel2
 				messageDTO.setPalinTiff(cellPerson.getStringCellValue().substring(3,index).replace(',', ' '));
 				messageDTO.setDefendant(cellPerson.getStringCellValue().substring(index+4,cellPerson.getStringCellValue().length()).replace(',', ' '));
 				messageDTO.setCloseWay(cellCloseWay.getStringCellValue());
-				if("".equals(cellChiefJudge.getStringCellValue()))
-					messageDTO.setJudge(cellJudge.getStringCellValue());
-				else
-					messageDTO.setChiefJudge(cellChiefJudge.getStringCellValue());
-				
+				messageDTO.setJudge(cellJudge==null?"":cellJudge.getStringCellValue());
+				messageDTO.setChiefJudge(cellChiefJudge.getStringCellValue());
 				messageDTO.setRecordDate(cellRecordDate.getStringCellValue());
 				messageDTO.setEndDate(cellEndDate.getStringCellValue());
-				messageDTO.setCollegiateMembers(cellCollegiateMembers.getStringCellValue().replace('、', ' '));
+				messageDTO.setCollegiateMembers(cellCollegiateMembers.getStringCellValue());
 				allMessages.put(number, messageDTO);
 			}
 			hssfWorkbook.close();
@@ -87,6 +84,9 @@ public class ReadExcel2
 		String plainTiff = messageDTO.getPalinTiff();
 		String defendant = messageDTO.getDefendant();
 		String closeWay = messageDTO.getCloseWay();
+		String judge = messageDTO.getJudge();
+		String chiefJudge = messageDTO.getChiefJudge();
+		String[] collegiateMembers = messageDTO.getCollegiateMembers().split("、");
 		
 		Workbook workbook = Workbook.getWorkbook(new File("template.xls"));
 		String fileName = "./export/" + name + ".xls";
@@ -107,12 +107,24 @@ public class ReadExcel2
 		Label label5 = (Label)sheet.getWritableCell(4,15);
 		label5.setString(closeWay);
 		
-		Label labelJudge = (Label)sheet.getWritableCell(7,12);
-		labelJudge.setString(messageDTO.getJudge());
-		
-		Label labelChiefJudge = (Label)sheet.getWritableCell(3,12);
-		labelChiefJudge.setString(messageDTO.getChiefJudge());
-		
+		Label labelJudgeType = (Label)sheet.getWritableCell(3,11);
+		Label labelJudgePerson = (Label)sheet.getWritableCell(3,12);
+		Label labelCollegiateMember1 = (Label)sheet.getWritableCell(7,12);
+		Label labelCollegiateMember2 = (Label)sheet.getWritableCell(11,12);
+		if("".equals(chiefJudge))
+		{
+			labelJudgeType.setString("审判员");
+			labelJudgePerson.setString(judge);
+			labelCollegiateMember1.setString("");
+			labelCollegiateMember2.setString("");
+		}
+		else
+		{
+			labelJudgeType.setString("审判长");
+			labelJudgePerson.setString(chiefJudge);
+			labelCollegiateMember1.setString(collegiateMembers[0]);
+			labelCollegiateMember2.setString(collegiateMembers[1]);
+		}
 		Label labelRecordYear = (Label)sheet.getWritableCell(4,13);
 		labelRecordYear.setString(messageDTO.getRecordDate().substring(0,4));
 		Label labelRecordMonth = (Label)sheet.getWritableCell(7,13);
@@ -137,8 +149,7 @@ public class ReadExcel2
 			labelEndDay.setString(endDate.substring(8,10));
 		}
 		
-		Label labelCollegiateMembers = (Label)sheet.getWritableCell(11,12);
-		labelCollegiateMembers.setString(messageDTO.getCollegiateMembers());
+		
 		exportBook.write();
 		exportBook.close();
 		System.out.print("success " + name + "  ");
